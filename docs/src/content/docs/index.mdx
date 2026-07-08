@@ -1,0 +1,39 @@
+---
+title: YAWSF — Yet Another Wayland Shell Framework
+description: Build native Wayland desktop surfaces with web technologies.
+template: splash
+hero:
+    title: YAWSF
+    tagline: Yet Another Wayland Shell Framework
+    actions:
+        - text: Get started
+          link: /guides/getting-started/
+          icon: right-arrow
+        - text: Explore the example shell
+          link: /guides/example-shell/
+          icon: open-book
+          variant: minimal
+---
+
+import { Card, CardGrid } from "@astrojs/starlight/components"
+
+Build native Wayland desktop surfaces with HTML, CSS, and JavaScript. YAWSF runs a local
+authenticated host API beside your web application, and your shell chooses which pages to expose as
+native surfaces.
+
+<CardGrid stagger>
+	<Card title="Layer-shell windows" icon="add-document">
+		Create bars, panels, backgrounds, overlays, and other compositor-managed surfaces.
+	</Card>
+	<Card title="Session locking" icon="setting">
+		Render a web page on every compositor-provided session-lock surface.
+	</Card>
+	<Card title="Web app supervision" icon="rocket">
+		Let YAWSF start, monitor, and gracefully stop your shell backend.
+	</Card>
+</CardGrid>
+
+## Start here
+
+Follow [Getting started](/guides/getting-started/) to run the included SvelteKit shell, then read
+[Build a shell](/guides/build-a-shell/) for the lifecycle and host API contract.

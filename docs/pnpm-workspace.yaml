@@ -1,0 +1,10 @@
+allowBuilds:
+    esbuild: true
+    sharp: true
+minimumReleaseAgeExclude:
+    - "@scalar/astro@0.4.11"
+    - "@scalar/client-side-rendering@0.3.4"
+    - "@scalar/helpers@0.9.2"
+    - "@scalar/schemas@0.7.4"
+    - "@scalar/types@0.16.4"
+    - "@scalar/validation@0.6.2"

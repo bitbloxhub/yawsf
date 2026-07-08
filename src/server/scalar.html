@@ -1,0 +1,60 @@
+<!doctype html>
+<html>
+	<head>
+		<title>YAWSF API Reference</title>
+		<meta charset="utf-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1" />
+			<style>
+				@import "https://cdn.jsdelivr.net/npm/@fontsource/fira-code@5.2.7/400.min.css";
+
+				:root {
+					--scalar-font:
+						Fira Code,
+						ui-monospace,
+						SFMono-Regular,
+						Menlo,
+						Monaco,
+						Consolas,
+						"Liberation Mono",
+						"Courier New",
+						monospace !important;
+					--scalar-font-code: var(--scalar-font);
+					font-feature-settings: "calt" 1;
+				}
+			</style>
+	</head>
+
+	<body>
+		<div id="app"></div>
+
+		<!-- Load the Script -->
+		<script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference@1.62.5"></script>
+
+		<!-- Initialize the API Reference -->
+		<script>
+			Scalar.createApiReference('#app', {
+				url: "/openapi.json",
+				telemetry: false,
+				agent: {
+					disabled: true,
+				},
+				mcp: {
+					disabled: true,
+				},
+				showDeveloperTools: "never",
+				theme: "laserwave",
+				hideClientButton: true,
+				authentication: {
+					preferredSecurityScheme: 'bearer_auth',
+					securitySchemes: {
+						bearer_auth: {
+							token: $token,
+						},
+					},
+				},
+			})
+		</script>
+	</body>
+</html>

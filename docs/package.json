@@ -1,0 +1,28 @@
+{
+	"name": "yawsf-docs",
+	"private": true,
+	"type": "module",
+	"version": "0.0.1",
+	"scripts": {
+		"dev": "astro dev",
+		"start": "astro dev",
+		"build": "astro build",
+		"preview": "astro preview",
+		"astro": "astro",
+		"generate:openapi": "cargo run --quiet --manifest-path ../Cargo.toml --bin export-openapi > public/openapi.json",
+		"format": "prettier --write .",
+		"format:check": "prettier --check ."
+	},
+	"dependencies": {
+		"@astrojs/starlight": "^0.41.3",
+		"@catppuccin/starlight": "^2.1.0",
+		"@fontsource-variable/fira-code": "^5.2.7",
+		"@scalar/astro": "^0.4.11",
+		"astro": "^7.0.2",
+		"sharp": "^0.34.5"
+	},
+	"devDependencies": {
+		"prettier": "^3.8.3",
+		"prettier-plugin-astro": "^0.14.1"
+	}
+}

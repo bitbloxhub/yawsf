@@ -1,0 +1,36 @@
+---
+title: Host API
+description: Interactive OpenAPI reference for the YAWSF native host.
+tableOfContents: false
+---
+
+import { ScalarComponent } from "@scalar/astro"
+
+<ScalarComponent
+	renderMode="client"
+	configuration={{
+		url: "/openapi.json",
+		theme: "laserwave",
+		pageTitle: "YAWSF Host API",
+		telemetry: false,
+		agent: { disabled: true },
+		mcp: { disabled: true },
+		showDeveloperTools: "never",
+		authentication: {
+			preferredSecurityScheme: "bearer_auth",
+		},
+		showSidebar: false,
+		hideSearch: true,
+		hideClientButton: true,
+		hideDarkModeToggle: true,
+		hideTestRequestButton: true,
+		withDefaultFonts: false,
+		customCss: `
+			:root {
+				--scalar-font: "Fira Code Variable", "Fira Code", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+				--scalar-font-code: var(--scalar-font);
+				font-feature-settings: "calt" 1;
+			}
+		`,
+	}}
+/>

@@ -1,0 +1,541 @@
+{
+	"openapi": "3.2.0",
+	"info": {
+		"title": "YAWSF Host API",
+		"description": "Authenticated control API for the YAWSF native host. Layer-shell mutations complete before their response; session-lock commands remain asynchronous and report lifecycle state separately.",
+		"license": {
+			"name": ""
+		},
+		"version": "0.1.0"
+	},
+	"paths": {
+		"/health": {
+			"get": {
+				"tags": ["system"],
+				"summary": "Check host availability",
+				"description": "Returns once the Rocket host API is accepting authenticated requests.",
+				"operationId": "health",
+				"responses": {
+					"200": {
+						"description": "Host is alive",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/HealthResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing or invalid bearer token"
+					}
+				}
+			}
+		},
+		"/layer-shell": {
+			"get": {
+				"tags": ["layer-shell"],
+				"summary": "List managed layer-shell windows",
+				"description": "Returns the current host snapshot. `layerShellWindows` contains the managed layer-shell windows; `sessionLock` is included as the host-wide session-lock status.",
+				"operationId": "list_layer_shell_windows",
+				"responses": {
+					"200": {
+						"description": "Current host state",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/AppState"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing or invalid bearer token"
+					}
+				}
+			}
+		},
+		"/layer-shell/{id}": {
+			"put": {
+				"tags": ["layer-shell"],
+				"summary": "Replace a layer-shell window",
+				"description": "Creates or replaces the window identified by the path `id`. Mutations for the same ID are serialized, and the response is returned after GTK processes the command.",
+				"operationId": "update_layer_shell_window",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"description": "Layer-shell window identifier",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/LayerShellWindowSpec"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"204": {
+						"description": "Layer-shell window update processed"
+					},
+					"400": {
+						"description": "Invalid request body"
+					},
+					"401": {
+						"description": "Missing or invalid bearer token"
+					},
+					"503": {
+						"description": "GTK application command channel is unavailable"
+					}
+				}
+			},
+			"delete": {
+				"tags": ["layer-shell"],
+				"summary": "Close a layer-shell window",
+				"description": "Closes the window identified by `id`. Mutations for the same ID are serialized, and the response is returned after GTK processes the command. Unknown IDs leave the managed window set unchanged.",
+				"operationId": "delete_layer_shell_window",
+				"parameters": [
+					{
+						"name": "id",
+						"in": "path",
+						"description": "Layer-shell window identifier",
+						"required": true,
+						"schema": {
+							"type": "string"
+						}
+					}
+				],
+				"responses": {
+					"204": {
+						"description": "Layer-shell window close processed"
+					},
+					"401": {
+						"description": "Missing or invalid bearer token"
+					},
+					"503": {
+						"description": "GTK application command channel is unavailable"
+					}
+				}
+			}
+		},
+		"/quit": {
+			"post": {
+				"tags": ["system"],
+				"summary": "Request host shutdown",
+				"description": "With `--webapp-command`, requests graceful Rocket shutdown and sends the supervised child `SIGTERM` (then `SIGKILL` after five seconds). Otherwise, sends the shell an `/_quit` callback. Repeated requests do not repeat shutdown notification.",
+				"operationId": "quit",
+				"responses": {
+					"202": {
+						"description": "Graceful host shutdown requested",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/QuitResponse"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing or invalid bearer token"
+					}
+				}
+			}
+		},
+		"/session-lock": {
+			"get": {
+				"tags": ["session-lock"],
+				"summary": "Get session-lock status",
+				"description": "Returns the most recently observed session-lock state. `pending` means a lock was requested but compositor confirmation has not arrived.",
+				"operationId": "session_lock_status",
+				"responses": {
+					"200": {
+						"description": "Current session-lock status",
+						"content": {
+							"application/json": {
+								"schema": {
+									"$ref": "#/components/schemas/SessionLockStatus"
+								}
+							}
+						}
+					},
+					"401": {
+						"description": "Missing or invalid bearer token"
+					}
+				}
+			}
+		},
+		"/session-lock/lock": {
+			"post": {
+				"tags": ["session-lock"],
+				"summary": "Request session lock",
+				"description": "Queues a session-lock request that loads the supplied URL on each lock surface. `202 Accepted` confirms queueing; poll the status endpoint for compositor success or failure.",
+				"operationId": "lock",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/SessionLockRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"202": {
+						"description": "Session lock requested"
+					},
+					"400": {
+						"description": "Invalid request body"
+					},
+					"401": {
+						"description": "Missing or invalid bearer token"
+					},
+					"503": {
+						"description": "GTK application command channel is unavailable"
+					}
+				}
+			}
+		},
+		"/session-lock/unlock": {
+			"post": {
+				"tags": ["session-lock"],
+				"summary": "Request session unlock",
+				"description": "Queues session unlock. `202 Accepted` confirms queueing; poll the status endpoint until it reports `unlocked`.",
+				"operationId": "unlock",
+				"responses": {
+					"202": {
+						"description": "Session unlock requested"
+					},
+					"401": {
+						"description": "Missing or invalid bearer token"
+					},
+					"503": {
+						"description": "GTK application command channel is unavailable"
+					}
+				}
+			}
+		}
+	},
+	"webhooks": {
+		"/_events": {
+			"post": {
+				"tags": [],
+				"summary": "Receive shell events",
+				"description": "MUST be implemented on `/_events` of your YAWSF shell for host-originated events.",
+				"operationId": "receiveEvents",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"type": "string"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"204": {
+						"description": "Event accepted"
+					}
+				}
+			}
+		},
+		"/_quit": {
+			"post": {
+				"tags": [],
+				"summary": "Request shell shutdown",
+				"description": "MAY be implemented on `/_quit` of your YAWSF shell. The host calls it before graceful native-host shutdown; shells that exit immediately may close the connection without a response.",
+				"operationId": "receiveQuit",
+				"responses": {
+					"204": {
+						"description": "Shell shutdown accepted"
+					}
+				}
+			}
+		},
+		"/_start": {
+			"post": {
+				"tags": [],
+				"summary": "Receive host bootstrap details",
+				"description": "MUST be implemented on `/_start` of your YAWSF shell. The host calls this webhook once its API is ready; persist `host_api` and `token` for subsequent authenticated host API requests.",
+				"operationId": "receiveStart",
+				"requestBody": {
+					"content": {
+						"application/json": {
+							"schema": {
+								"$ref": "#/components/schemas/ShellStartRequest"
+							}
+						}
+					},
+					"required": true
+				},
+				"responses": {
+					"204": {
+						"description": "Bootstrap accepted"
+					}
+				}
+			}
+		}
+	},
+	"components": {
+		"schemas": {
+			"AppState": {
+				"type": "object",
+				"description": "Current host state.",
+				"required": ["layerShellWindows"],
+				"properties": {
+					"layerShellWindows": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/LayerShellWindowState"
+						},
+						"description": "Layer-shell windows currently managed by the host."
+					},
+					"sessionLock": {
+						"$ref": "#/components/schemas/SessionLockState",
+						"description": "Most recently observed session-lock state."
+					}
+				}
+			},
+			"ExclusiveZone": {
+				"oneOf": [
+					{
+						"type": "object",
+						"description": "Reserve no screen space.",
+						"required": ["mode"],
+						"properties": {
+							"mode": {
+								"type": "string",
+								"enum": ["none"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"description": "Let the compositor derive reserved space from surface size.",
+						"required": ["mode"],
+						"properties": {
+							"mode": {
+								"type": "string",
+								"enum": ["auto"]
+							}
+						}
+					},
+					{
+						"type": "object",
+						"description": "Reserve an exact logical-pixel size.",
+						"required": ["value", "mode"],
+						"properties": {
+							"mode": {
+								"type": "string",
+								"enum": ["fixed"]
+							},
+							"value": {
+								"type": "integer",
+								"format": "int32",
+								"description": "Reserve an exact logical-pixel size."
+							}
+						}
+					}
+				],
+				"description": "Space reserved by the layer-shell surface."
+			},
+			"HealthResponse": {
+				"type": "object",
+				"description": "Liveness response from the native host.",
+				"required": ["status"],
+				"properties": {
+					"status": {
+						"type": "string",
+						"description": "Always `ok` when the host accepts requests."
+					}
+				}
+			},
+			"KeyboardMode": {
+				"type": "string",
+				"description": "Keyboard focus behavior requested from wlr-layer-shell.",
+				"enum": ["none", "on-demand", "exclusive"]
+			},
+			"Layer": {
+				"type": "string",
+				"description": "Stacking layer requested from wlr-layer-shell.",
+				"enum": ["background", "bottom", "top", "overlay"]
+			},
+			"LayerShellAnchors": {
+				"type": "object",
+				"description": "Edges to which the layer-shell surface is anchored.",
+				"properties": {
+					"bottom": {
+						"type": "boolean",
+						"description": "Anchor to the bottom edge."
+					},
+					"left": {
+						"type": "boolean",
+						"description": "Anchor to the left edge."
+					},
+					"right": {
+						"type": "boolean",
+						"description": "Anchor to the right edge."
+					},
+					"top": {
+						"type": "boolean",
+						"description": "Anchor to the top edge."
+					}
+				}
+			},
+			"LayerShellMargins": {
+				"type": "object",
+				"description": "Per-edge layer-shell margins in logical pixels.",
+				"properties": {
+					"bottom": {
+						"type": "integer",
+						"format": "int32",
+						"description": "Bottom margin."
+					},
+					"left": {
+						"type": "integer",
+						"format": "int32",
+						"description": "Left margin."
+					},
+					"right": {
+						"type": "integer",
+						"format": "int32",
+						"description": "Right margin."
+					},
+					"top": {
+						"type": "integer",
+						"format": "int32",
+						"description": "Top margin."
+					}
+				}
+			},
+			"LayerShellWindowSpec": {
+				"type": "object",
+				"description": "Configuration for a wlr-layer-shell window.",
+				"required": ["url"],
+				"properties": {
+					"anchors": {
+						"$ref": "#/components/schemas/LayerShellAnchors",
+						"description": "Screen edges to which the surface is anchored."
+					},
+					"exclusiveZone": {
+						"$ref": "#/components/schemas/ExclusiveZone",
+						"description": "Space reserved from other surfaces."
+					},
+					"height": {
+						"type": ["integer", "null"],
+						"format": "int32",
+						"description": "Optional logical height. Defaults to 240 when omitted.",
+						"minimum": 0
+					},
+					"keyboardMode": {
+						"$ref": "#/components/schemas/KeyboardMode",
+						"description": "Keyboard focus behavior for the surface."
+					},
+					"layer": {
+						"$ref": "#/components/schemas/Layer",
+						"description": "Compositor layer for the surface."
+					},
+					"margins": {
+						"$ref": "#/components/schemas/LayerShellMargins",
+						"description": "Offset from each anchored screen edge, in logical pixels."
+					},
+					"monitor": {
+						"type": ["string", "null"],
+						"description": "Output/monitor name. `None` lets the compositor choose."
+					},
+					"namespace": {
+						"type": ["string", "null"],
+						"description": "Optional compositor namespace used to identify this surface."
+					},
+					"url": {
+						"type": "string",
+						"description": "URL loaded in the window's web view."
+					},
+					"width": {
+						"type": ["integer", "null"],
+						"format": "int32",
+						"description": "Optional logical width. Defaults to 500 when omitted.",
+						"minimum": 0
+					}
+				}
+			},
+			"LayerShellWindowState": {
+				"allOf": [
+					{
+						"$ref": "#/components/schemas/LayerShellWindowSpec",
+						"description": "Configuration currently associated with this window identifier."
+					}
+				],
+				"description": "Snapshot entry for one managed layer-shell window."
+			},
+			"QuitResponse": {
+				"type": "object",
+				"description": "Accepted native-host shutdown request.",
+				"required": ["status"],
+				"properties": {
+					"status": {
+						"type": "string",
+						"description": "Always `shutting down` for an accepted request."
+					}
+				}
+			},
+			"SessionLockRequest": {
+				"type": "object",
+				"description": "URL loaded on every session-lock surface.",
+				"required": ["url"],
+				"properties": {
+					"url": {
+						"type": "string",
+						"description": "URL loaded in each compositor-provided lock surface."
+					}
+				}
+			},
+			"SessionLockState": {
+				"type": "string",
+				"description": "Lifecycle state reported by the session-lock compositor protocol.",
+				"enum": ["unlocked", "pending", "locked", "failed"]
+			},
+			"SessionLockStatus": {
+				"type": "object",
+				"description": "Current session-lock lifecycle state.",
+				"required": ["state"],
+				"properties": {
+					"state": {
+						"$ref": "#/components/schemas/SessionLockState",
+						"description": "Most recently observed compositor state."
+					}
+				}
+			}
+		},
+		"securitySchemes": {
+			"bearer_auth": {
+				"type": "http",
+				"scheme": "bearer"
+			}
+		}
+	},
+	"security": [
+		{
+			"bearer_auth": []
+		}
+	],
+	"tags": [
+		{
+			"name": "layer-shell",
+			"description": "Create, inspect, update, and close wlr-layer-shell windows."
+		},
+		{
+			"name": "session-lock",
+			"description": "Inspect and control the ext-session-lock-v1 session lock."
+		}
+	]
+}
