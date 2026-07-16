@@ -14,6 +14,16 @@ export default defineConfig({
 			title: "YAWSF",
 			description: "Build native Wayland desktop surfaces with web technologies.",
 			customCss: ["@fontsource-variable/fira-code/wght.css", "./src/styles/custom.css"],
+			social: [
+				{
+					icon: "github",
+					label: "GitHub",
+					href: "https://github.com/bitbloxhub/yawsf",
+				},
+			],
+			editLink: {
+				baseUrl: "https://github.com/bitbloxhub/yawsf/edit/main/docs/",
+			},
 			sidebar: [
 				{ label: "Overview", slug: "" },
 				{
@@ -21,7 +31,10 @@ export default defineConfig({
 					items: [
 						{ label: "Getting started", slug: "guides/getting-started" },
 						{ label: "Build a shell", slug: "guides/build-a-shell" },
-						{ label: "Example shell", slug: "guides/example-shell" },
+						{
+							label: "Example shell",
+							link: "https://github.com/bitbloxhub/yawsf/tree/main/example-shell",
+						},
 					],
 				},
 				{
