@@ -9,8 +9,13 @@ YAWSF runs on Wayland and needs a compositor that supports the protocols used by
 create. Layer-shell windows require `wlr-layer-shell`; session locking requires
 `ext-session-lock-v1`.
 
-The repository provides a Nix development shell with Rust, Node.js, pnpm, GTK, WebKitGTK, and the
-other native dependencies.
+Nix is the fully supported way to build YAWSF; direct Cargo builds are semi-supported. The repository
+provides a Nix development shell with Rust, Node.js, pnpm, GTK, WebKitGTK, and the other native
+dependencies. Build the host with:
+
+```sh
+nix build .#default
+```
 
 ## Run the example shell
 

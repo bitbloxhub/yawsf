@@ -68,10 +68,9 @@ pnpm --dir example-shell lint
 pnpm --dir example-shell build
 ```
 
-To run the production build under YAWSF:
+To use the fully supported path for running the production build under YAWSF, build with Nix:
 
 ```sh
 pnpm --dir example-shell build
-cargo run --release -- --webapp-command "pnpm --dir example-shell start"
-# or `nix run .#default --`
+nix run .#default -- --webapp-command "pnpm --dir example-shell start"
 ```

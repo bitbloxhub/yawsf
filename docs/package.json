@@ -9,7 +9,7 @@
 		"build": "astro build",
 		"preview": "astro preview",
 		"astro": "astro",
-		"generate:openapi": "cargo run --quiet --manifest-path ../Cargo.toml --bin export-openapi > public/openapi.json",
+		"generate:yawsf-host-api": "nix run ..#export-openapi > public/openapi.json",
 		"format": "prettier --write .",
 		"format:check": "prettier --check ."
 	},

@@ -3,6 +3,15 @@ name = "yawsf"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = []
+export-openapi = []
+
+[[bin]]
+name = "export-openapi"
+path = "src/bin/export-openapi.rs"
+required-features = ["export-openapi"]
+
 [dependencies]
 anyhow = "1.0.103"
 arc-swap = "1.9.2"

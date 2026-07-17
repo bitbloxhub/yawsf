@@ -12346,6 +12346,11 @@ rec {
         edition = "2024";
         crateBin = [
           {
+            name = "export-openapi";
+            path = "src/bin/export-openapi.rs";
+            requiredFeatures = [ "export-openapi" ];
+          }
+          {
             name = "yawsf";
             path = "src/main.rs";
             requiredFeatures = [ ];
@@ -12442,7 +12447,9 @@ rec {
             features = [ "gtk_v4_18" "v2_52" ];
           }
         ];
-
+        features = {
+        };
+        resolvedDefaultFeatures = [ "default" "export-openapi" ];
       };
       "yoke" = rec {
         crateName = "yoke";
@@ -13576,3 +13583,4 @@ rec {
   #
   };
 }
+

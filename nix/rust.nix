@@ -68,6 +68,14 @@
             };
           };
       };
+
+      yawsfBuild = cargoWorkspace.rootCrate.build;
+      exportOpenapiBuild = yawsfBuild.override {
+        features = [
+          "default"
+          "export-openapi"
+        ];
+      };
     in
     {
       make-shells.default = {
@@ -84,7 +92,12 @@
         ];
       };
 
-      packages.default = cargoWorkspace.workspaceMembers.yawsf.build;
+      apps.export-openapi = {
+        type = "app";
+        program = "${exportOpenapiBuild}/bin/export-openapi";
+      };
+
+      packages.default = yawsfBuild;
 
       treefmt = {
         programs.rustfmt = {

@@ -48,6 +48,14 @@ Open `http://127.0.0.1:24540/`, or start with [`docs/README.md`](docs/README.md)
 [`example-shell/README.md`](example-shell/README.md) for the example architecture and its custom
 server-side HMR lifecycle.
 
+## Build
+
+Nix is the fully supported way to build YAWSF. Direct Cargo builds are semi-supported.
+
+```sh
+nix build .#default
+```
+
 ## Development
 
 ```sh
@@ -59,9 +67,9 @@ pnpm --dir docs format:check
 pnpm --dir docs build
 ```
 
-Regenerate the checked-in OpenAPI document after host API changes:
+Regenerate the checked-in YAWSF Host API document after host API changes:
 
 ```sh
-pnpm --dir docs generate:openapi
+pnpm --dir docs generate:yawsf-host-api
 pnpm --dir docs format
 ```
