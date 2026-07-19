@@ -38,7 +38,7 @@ pub(super) fn build_layer_shell_window(
 	id: String,
 	spec: &LayerShellWindowSpec,
 	alive: &Rc<Cell<bool>>,
-) -> Result<ApplicationWindow, String> {
+) -> Result<(ApplicationWindow, WebView), String> {
 	let display = gtk4::gdk::Display::default().ok_or("GTK display unavailable")?;
 	if !display.backend().is_wayland() || !gtk4_layer_shell::is_supported() {
 		return Err(
@@ -76,7 +76,7 @@ pub(super) fn build_layer_shell_window(
 		false
 	});
 	webview.load_uri(spec.url.as_str());
-	Ok(window)
+	Ok((window, webview))
 }
 
 fn configure_layer_shell_window(
@@ -89,6 +89,36 @@ fn configure_layer_shell_window(
 		return Err("gtk4-layer-shell failed to initialize window".into());
 	}
 
+	apply_layer_shell_window(window, display, spec);
+	Ok(())
+}
+
+pub(super) fn update_layer_shell_window(
+	window: &ApplicationWindow,
+	webview: &WebView,
+	spec: &LayerShellWindowSpec,
+	url_changed: bool,
+) {
+	let Some(display) = gtk4::gdk::Display::default() else {
+		return;
+	};
+
+	window.set_default_size(
+		spec.width.unwrap_or(500) as i32,
+		spec.height.unwrap_or(240) as i32,
+	);
+	apply_layer_shell_window(window, &display, spec);
+
+	if url_changed {
+		webview.load_uri(spec.url.as_str());
+	}
+}
+
+fn apply_layer_shell_window(
+	window: &ApplicationWindow,
+	display: &gtk4::gdk::Display,
+	spec: &LayerShellWindowSpec,
+) {
 	window.set_namespace(spec.namespace.as_deref());
 	window.set_layer(match spec.layer {
 		Layer::Background => ShellLayer::Background,
@@ -118,7 +148,6 @@ fn configure_layer_shell_window(
 	}
 
 	set_monitor(window, display, spec.monitor.as_deref());
-	Ok(())
 }
 
 fn set_monitor(
@@ -126,23 +155,21 @@ fn set_monitor(
 	display: &gtk4::gdk::Display,
 	monitor_name: Option<&str>,
 ) {
-	let Some(monitor_name) = monitor_name else {
-		return;
-	};
-
-	let monitors = display.monitors();
-	let monitor = (0..monitors.n_items()).find_map(|index| {
-		monitors
-			.item(index)
-			.and_downcast::<gtk4::gdk::Monitor>()
-			.filter(|monitor| monitor.connector().as_deref() == Some(monitor_name))
+	let monitor = monitor_name.and_then(|monitor_name| {
+		let monitors = display.monitors();
+		(0..monitors.n_items()).find_map(|index| {
+			monitors
+				.item(index)
+				.and_downcast::<gtk4::gdk::Monitor>()
+				.filter(|monitor| monitor.connector().as_deref() == Some(monitor_name))
+		})
 	});
 
-	if let Some(monitor) = monitor.as_ref() {
-		window.set_monitor(Some(monitor));
-	} else {
-		eprintln!("layer-shell monitor not found: {monitor_name}");
+	if monitor_name.is_some() && monitor.is_none() {
+		eprintln!("layer-shell monitor not found: {}", monitor_name.unwrap());
 	}
+
+	window.set_monitor(monitor.as_ref());
 }
 
 fn webkit_network_session() -> Result<NetworkSession, String> {

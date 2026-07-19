@@ -7,12 +7,14 @@ use gtk4::{
 use tokio::sync::mpsc::UnboundedReceiver;
 
 use crate::{AppCommand, AppState, LayerShellWindowSpec, LayerShellWindowState};
+use webkit6::WebView;
 
 mod layer_shell;
 mod session_lock;
 
 struct LayerShellWindowEntry {
 	window: ApplicationWindow,
+	webview: WebView,
 	alive: Rc<Cell<bool>>,
 	spec: LayerShellWindowSpec,
 }
@@ -84,8 +86,21 @@ impl LayerShellWindowManager {
 	}
 
 	fn upsert_layer_shell_window(&mut self, id: String, spec: LayerShellWindowSpec) {
+		if let Some(entry) = self.layer_shell_windows.get_mut(&id) {
+			let url_changed = entry.spec.url != spec.url;
+			layer_shell::update_layer_shell_window(
+				&entry.window,
+				&entry.webview,
+				&spec,
+				url_changed,
+			);
+			entry.spec = spec;
+			self.publish_state();
+			return;
+		}
+
 		let alive = Rc::new(Cell::new(true));
-		let window =
+		let (window, webview) =
 			match layer_shell::build_layer_shell_window(&self.app, id.clone(), &spec, &alive) {
 				Ok(window) => window,
 				Err(err) => {
@@ -94,17 +109,15 @@ impl LayerShellWindowManager {
 				}
 			};
 
-		if let Some(previous) = self.layer_shell_windows.insert(
+		self.layer_shell_windows.insert(
 			id,
 			LayerShellWindowEntry {
 				window,
+				webview,
 				alive,
 				spec,
 			},
-		) {
-			previous.alive.set(false);
-			previous.window.destroy();
-		}
+		);
 
 		self.publish_state();
 	}

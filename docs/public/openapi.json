@@ -58,8 +58,8 @@
 		"/layer-shell/{id}": {
 			"put": {
 				"tags": ["layer-shell"],
-				"summary": "Replace a layer-shell window",
-				"description": "Creates or replaces the window identified by the path `id`. Mutations for the same ID are serialized, and the response is returned after GTK processes the command.",
+				"summary": "Update a layer-shell window",
+				"description": "Creates the window when `id` is unknown, or updates the existing window in place. Mutations for the same ID are serialized, and the response is returned after GTK processes the command.",
 				"operationId": "update_layer_shell_window",
 				"parameters": [
 					{

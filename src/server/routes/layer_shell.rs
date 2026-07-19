@@ -41,8 +41,8 @@ fn list_layer_shell_windows(_auth: BearerToken, state: &State<ServerState>) -> J
 	put,
 	path = "/{id}",
 	tag = "layer-shell",
-	summary = "Replace a layer-shell window",
-	description = "Creates or replaces the window identified by the path `id`. Mutations for the same ID are serialized, and the response is returned after GTK processes the command.",
+	summary = "Update a layer-shell window",
+	description = "Creates the window when `id` is unknown, or updates the existing window in place. Mutations for the same ID are serialized, and the response is returned after GTK processes the command.",
 	params(("id" = String, Path, description = "Layer-shell window identifier")),
 	request_body = LayerShellWindowSpec,
 	responses(
