@@ -95,7 +95,10 @@ pub async fn run_server(
 		let cancel = cancel.clone();
 		tokio::spawn(async move {
 			tokio::select! {
-				status = webapp.wait() => eprintln!("webapp exited: {status:?}"),
+				status = webapp.wait() => {
+					eprintln!("webapp exited: {status:?}");
+					webapp.terminate().await;
+				}
 				_ = cancel.cancelled() => webapp.terminate().await,
 			}
 			cancel.cancel();
