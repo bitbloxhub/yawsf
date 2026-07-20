@@ -90,10 +90,10 @@ pub async fn run_server(
 	let client = reqwest::Client::new();
 	let callbacks = ShellClient::new(client, &args, host_api);
 
-	if let Some(command) = webapp_command {
+	let webapp_task = if let Some(command) = webapp_command {
 		let mut webapp = WebappProcess::spawn(&command)?;
 		let cancel = cancel.clone();
-		tokio::spawn(async move {
+		Some(tokio::spawn(async move {
 			tokio::select! {
 				status = webapp.wait() => {
 					eprintln!("webapp exited: {status:?}");
@@ -102,8 +102,10 @@ pub async fn run_server(
 				_ = cancel.cancelled() => webapp.terminate().await,
 			}
 			cancel.cancel();
-		});
-	}
+		}))
+	} else {
+		None
+	};
 
 	let rocket = build_rocket(
 		&args,
@@ -117,8 +119,12 @@ pub async fn run_server(
 	let rocket_task = tokio::spawn(async move { rocket.launch().await });
 
 	if let Err(err) = post_start(&callbacks, &cancel).await {
+		cancel.cancel();
 		shutdown.notify();
 		let _ = rocket_task.await;
+		if let Some(webapp_task) = webapp_task {
+			let _ = webapp_task.await;
+		}
 		return Err(err);
 	}
 
@@ -127,6 +133,9 @@ pub async fn run_server(
 
 	cancel_task.abort();
 	let _ = cancel_task.await;
+	if let Some(webapp_task) = webapp_task {
+		let _ = webapp_task.await;
+	}
 
 	result??;
 	let _ = app_command_tx.send(AppCommand::Quit);
