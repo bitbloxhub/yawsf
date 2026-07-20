@@ -144,6 +144,9 @@ pub struct LayerShellWindowSpec {
 	pub height: Option<u32>,
 	/// Output/monitor name. `None` lets the compositor choose.
 	pub monitor: Option<String>,
+	/// Whether the window is mapped and visible.
+	#[schema(default = true)]
+	pub visible: Option<bool>,
 }
 
 /// URL loaded on every session-lock surface.

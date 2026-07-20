@@ -460,6 +460,11 @@
 						"type": "string",
 						"description": "URL loaded in the window's web view."
 					},
+					"visible": {
+						"type": ["boolean", "null"],
+						"description": "Whether the window is mapped and visible.",
+						"default": true
+					},
 					"width": {
 						"type": ["integer", "null"],
 						"format": "int32",

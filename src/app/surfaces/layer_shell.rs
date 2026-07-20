@@ -62,11 +62,12 @@ pub(super) fn build_layer_shell_window(
 		.build();
 
 	configure_layer_shell_window(&window, &display, spec)?;
+	let visible = spec.visible.unwrap_or(true);
 	webview.connect_load_changed({
 		let window = window.clone();
 		let alive = alive.clone();
 		move |_, event| {
-			if event == LoadEvent::Finished && alive.get() {
+			if event == LoadEvent::Finished && alive.get() && visible {
 				window.present();
 			}
 		}
@@ -108,6 +109,11 @@ pub(super) fn update_layer_shell_window(
 		spec.height.unwrap_or(240) as i32,
 	);
 	apply_layer_shell_window(window, &display, spec);
+	if spec.visible.unwrap_or(true) {
+		window.present();
+	} else {
+		window.set_visible(false);
+	}
 
 	if url_changed {
 		webview.load_uri(spec.url.as_str());
