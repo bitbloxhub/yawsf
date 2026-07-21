@@ -1,7 +1,7 @@
 use rocket::{State, http::Status, routes, serde::json::Json};
 use utoipa::OpenApi;
 
-use crate::{AppCommand, AppState, LayerShellWindowSpec};
+use crate::{AppCommand, LayerShellWindowSpec, LayerShellWindowsResponse};
 
 use super::super::{ServerState, auth::BearerToken};
 
@@ -26,15 +26,20 @@ pub(super) struct LayerShellApi;
 	path = "",
 	tag = "layer-shell",
 	summary = "List managed layer-shell windows",
-	description = "Returns the current host snapshot. `layerShellWindows` contains the managed layer-shell windows; `sessionLock` is included as the host-wide session-lock status.",
+	description = "Returns the currently managed layer-shell windows and their identifiers.",
 	responses(
-		(status = 200, description = "Current host state", body = AppState),
+		(status = 200, description = "Current layer-shell windows", body = LayerShellWindowsResponse),
 		(status = 401, description = "Missing or invalid bearer token"),
 	)
 )]
 #[rocket::get("/")]
-fn list_layer_shell_windows(_auth: BearerToken, state: &State<ServerState>) -> Json<AppState> {
-	Json((**state.app_state.load()).clone())
+fn list_layer_shell_windows(
+	_auth: BearerToken,
+	state: &State<ServerState>,
+) -> Json<LayerShellWindowsResponse> {
+	Json(LayerShellWindowsResponse {
+		layer_shell_windows: (**state.app_state.load()).layer_shell_windows.clone(),
+	})
 }
 
 #[utoipa::path(

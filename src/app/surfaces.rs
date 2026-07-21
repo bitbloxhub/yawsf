@@ -136,8 +136,9 @@ impl LayerShellWindowManager {
 		let state = AppState {
 			layer_shell_windows: self
 				.layer_shell_windows
-				.values()
-				.map(|entry| LayerShellWindowState {
+				.iter()
+				.map(|(id, entry)| LayerShellWindowState {
+					id: id.clone(),
 					spec: entry.spec.clone(),
 				})
 				.collect(),

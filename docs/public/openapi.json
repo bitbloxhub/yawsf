@@ -36,15 +36,15 @@
 			"get": {
 				"tags": ["layer-shell"],
 				"summary": "List managed layer-shell windows",
-				"description": "Returns the current host snapshot. `layerShellWindows` contains the managed layer-shell windows; `sessionLock` is included as the host-wide session-lock status.",
+				"description": "Returns the currently managed layer-shell windows and their identifiers.",
 				"operationId": "list_layer_shell_windows",
 				"responses": {
 					"200": {
-						"description": "Current host state",
+						"description": "Current layer-shell windows",
 						"content": {
 							"application/json": {
 								"schema": {
-									"$ref": "#/components/schemas/AppState"
+									"$ref": "#/components/schemas/LayerShellWindowsResponse"
 								}
 							}
 						}
@@ -287,24 +287,6 @@
 	},
 	"components": {
 		"schemas": {
-			"AppState": {
-				"type": "object",
-				"description": "Current host state.",
-				"required": ["layerShellWindows"],
-				"properties": {
-					"layerShellWindows": {
-						"type": "array",
-						"items": {
-							"$ref": "#/components/schemas/LayerShellWindowState"
-						},
-						"description": "Layer-shell windows currently managed by the host."
-					},
-					"sessionLock": {
-						"$ref": "#/components/schemas/SessionLockState",
-						"description": "Most recently observed session-lock state."
-					}
-				}
-			},
 			"ExclusiveZone": {
 				"oneOf": [
 					{
@@ -478,9 +460,32 @@
 					{
 						"$ref": "#/components/schemas/LayerShellWindowSpec",
 						"description": "Configuration currently associated with this window identifier."
+					},
+					{
+						"type": "object",
+						"required": ["id"],
+						"properties": {
+							"id": {
+								"type": "string",
+								"description": "Identifier used by the layer-shell API path."
+							}
+						}
 					}
 				],
 				"description": "Snapshot entry for one managed layer-shell window."
+			},
+			"LayerShellWindowsResponse": {
+				"type": "object",
+				"description": "Layer-shell window listing response.",
+				"required": ["layerShellWindows"],
+				"properties": {
+					"layerShellWindows": {
+						"type": "array",
+						"items": {
+							"$ref": "#/components/schemas/LayerShellWindowState"
+						}
+					}
+				}
 			},
 			"QuitResponse": {
 				"type": "object",

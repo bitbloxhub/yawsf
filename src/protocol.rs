@@ -4,9 +4,19 @@ use utoipa::ToSchema;
 /// Snapshot entry for one managed layer-shell window.
 #[derive(Serialize, Deserialize, Clone, Debug, ToSchema)]
 pub struct LayerShellWindowState {
+	/// Identifier used by the layer-shell API path.
+	pub id: String,
+
 	/// Configuration currently associated with this window identifier.
 	#[serde(flatten)]
 	pub spec: LayerShellWindowSpec,
+}
+
+/// Layer-shell window listing response.
+#[derive(Serialize, Deserialize, Clone, Debug, ToSchema)]
+#[serde(rename_all = "camelCase")]
+pub struct LayerShellWindowsResponse {
+	pub layer_shell_windows: Vec<LayerShellWindowState>,
 }
 
 /// Current host state.
