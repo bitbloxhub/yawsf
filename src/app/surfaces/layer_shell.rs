@@ -5,7 +5,7 @@ use gtk4::{
 	gdk::prelude::{DisplayExt, DisplayExtManual, MonitorExt},
 	gio::prelude::ListModelExt,
 	glib::object::CastNone,
-	prelude::{GtkWindowExt, WidgetExt},
+	prelude::{GtkWindowExt, NativeExt, WidgetExt},
 };
 use gtk4_layer_shell::{Edge, KeyboardMode as ShellKeyboardMode, Layer as ShellLayer, LayerShell};
 use webkit6::{LoadEvent, NetworkSession, WebView, prelude::WebViewExt};
@@ -111,7 +111,7 @@ pub(super) fn update_layer_shell_window(
 	apply_layer_shell_window(window, &display, spec);
 	if spec.visible.unwrap_or(true) {
 		window.present();
-	} else {
+	} else if window.surface().is_some() {
 		window.set_visible(false);
 	}
 
