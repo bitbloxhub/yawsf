@@ -8,7 +8,7 @@ use gtk4::{
 	prelude::{GtkWindowExt, NativeExt, WidgetExt},
 };
 use gtk4_layer_shell::{Edge, KeyboardMode as ShellKeyboardMode, Layer as ShellLayer, LayerShell};
-use webkit6::{LoadEvent, NetworkSession, WebView, prelude::WebViewExt};
+use webkit6::{LoadEvent, NetworkSession, WebContext, WebView, prelude::WebViewExt};
 
 use crate::{ExclusiveZone, KeyboardMode, Layer, LayerShellWindowSpec};
 
@@ -38,7 +38,7 @@ pub(super) fn build_layer_shell_window(
 	id: String,
 	spec: &LayerShellWindowSpec,
 	alive: &Rc<Cell<bool>>,
-) -> Result<(ApplicationWindow, WebView), String> {
+) -> Result<(ApplicationWindow, WebContext, WebView), String> {
 	let display = gtk4::gdk::Display::default().ok_or("GTK display unavailable")?;
 	if !display.backend().is_wayland() || !gtk4_layer_shell::is_supported() {
 		return Err(
@@ -46,8 +46,12 @@ pub(super) fn build_layer_shell_window(
 		);
 	}
 
+	let web_context = WebContext::new();
 	let network_session = webkit_network_session()?;
-	let webview = WebView::builder().network_session(&network_session).build();
+	let webview = WebView::builder()
+		.web_context(&web_context)
+		.network_session(&network_session)
+		.build();
 	webview.set_hexpand(true);
 	webview.set_vexpand(true);
 	webview.set_background_color(&gtk4::gdk::RGBA::new(0.0, 0.0, 0.0, 0.0));
@@ -77,7 +81,7 @@ pub(super) fn build_layer_shell_window(
 		false
 	});
 	webview.load_uri(spec.url.as_str());
-	Ok((window, webview))
+	Ok((window, web_context, webview))
 }
 
 fn configure_layer_shell_window(

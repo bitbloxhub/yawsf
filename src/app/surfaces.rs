@@ -1,19 +1,28 @@
-use std::{cell::Cell, collections::BTreeMap, rc::Rc, sync::Arc};
+use std::{
+	cell::{Cell, RefCell},
+	collections::BTreeMap,
+	rc::Rc,
+	sync::Arc,
+};
 
 use arc_swap::ArcSwap;
 use gtk4::{
-	Application, ApplicationWindow, gio::prelude::ApplicationExt, glib, prelude::GtkWindowExt,
+	Application, ApplicationWindow,
+	gio::prelude::ApplicationExt,
+	glib,
+	prelude::{GtkWindowExt, WidgetExt},
 };
 use tokio::sync::mpsc::UnboundedReceiver;
 
 use crate::{AppCommand, AppState, LayerShellWindowSpec, LayerShellWindowState};
-use webkit6::WebView;
+use webkit6::{WebContext, WebView, prelude::WebViewExt};
 
 mod layer_shell;
 mod session_lock;
 
 struct LayerShellWindowEntry {
 	window: ApplicationWindow,
+	web_context: WebContext,
 	webview: WebView,
 	alive: Rc<Cell<bool>>,
 	spec: LayerShellWindowSpec,
@@ -100,7 +109,7 @@ impl LayerShellWindowManager {
 		}
 
 		let alive = Rc::new(Cell::new(true));
-		let (window, webview) =
+		let (window, web_context, webview) =
 			match layer_shell::build_layer_shell_window(&self.app, id.clone(), &spec, &alive) {
 				Ok(window) => window,
 				Err(err) => {
@@ -113,6 +122,7 @@ impl LayerShellWindowManager {
 			id,
 			LayerShellWindowEntry {
 				window,
+				web_context,
 				webview,
 				alive,
 				spec,
@@ -123,9 +133,21 @@ impl LayerShellWindowManager {
 	}
 
 	fn close_layer_shell_window(&mut self, id: &str) {
-		if let Some(window) = self.layer_shell_windows.remove(id) {
-			window.alive.set(false);
-			window.window.destroy();
+		if let Some(entry) = self.layer_shell_windows.remove(id) {
+			entry.alive.set(false);
+
+			let gtk_window = entry.window.clone();
+			let webview = Rc::new(RefCell::new(Some(entry.webview)));
+			let webview_for_close = Rc::clone(&webview);
+			webview.borrow().as_ref().unwrap().connect_close(move |_| {
+				if let Some(webview) = webview_for_close.borrow_mut().take() {
+					webview.terminate_web_process();
+				}
+				gtk_window.destroy();
+			});
+
+			entry.window.set_visible(false);
+			webview.borrow().as_ref().unwrap().try_close();
 		}
 
 		self.publish_state();
